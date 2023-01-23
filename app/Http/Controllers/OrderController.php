@@ -9,6 +9,11 @@ use Illuminate\Support\Facades\Log;
 
 class OrderController extends Controller
 {
+    public $statusMessage = [
+        'TRADE_SUCCESS' => '支付成功.!',
+        'WAIT_BUYER_PAY' => '订单已拉起,请支付.支付成功后请再次点击按钮检查支付状态.!'
+    ];
+
     public function alipayCreate(Request $request)
     {
 
@@ -16,16 +21,29 @@ class OrderController extends Controller
             if ($request->get('pay_url')) {
                 $id = $request->get('notify_id');
                 $result = AlipayClient::queryStatus($id);
+                if ($result['success']) {
+                    $status = data_get($result['result'], 'trade_status');
+                    $msg = data_get($this->statusMessage, $status, '未知状态');
+                    return response()->json([
+                        'status' => 0,
+                        'msg' => $msg,
+                        'data' => [
+                            'message' => $msg,
+                            'json' => json_encode($result['result'])
+                        ]
+                    ]);
 
-                $msg = data_get($result['result'], 'sub_msg');
-                return response()->json([
-                    'status' => $result['success'] ? 0 : 1,
-                    'msg' => $msg ?: '订单不存在或者没有消息',
-                    'data' => [
-                        'message' => $msg ?: '订单不存在或者没有消息',
-                        'json' => json_encode($result['result'])
-                    ]
-                ]);
+                } else {
+                    $msg = data_get($result['result'], 'sub_msg');
+                    return response()->json([
+                        'status' => $result['success'] ? 0 : 1,
+                        'msg' => $msg ?: '订单尚未拉起,请扫码支付',
+                        'data' => [
+                            'message' => $msg ?: '订单尚未拉起,请扫码支付',
+                            'json' => json_encode($result['result'])
+                        ]
+                    ]);
+                }
 
             }
             $order = Order::createOrder($request);
@@ -57,6 +75,7 @@ class OrderController extends Controller
 
     public function alipayNotify(Request $request)
     {
+        Log::debug('异步回调.');
         $id = $request->get('out_trade_no');
         $order = Order::query()
             ->where('notify_id', $id)

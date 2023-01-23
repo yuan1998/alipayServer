@@ -82,17 +82,18 @@
                         name: 'total',
                         value: "¥{{$feePrice + $price}}CNY"
                     },
-                    {
-                        "type": "static",
-                        "name": "message",
-                        "visibleOn": "typeof data.message !== 'undefined'",
-                        "label": "返回信息"
-                    },
+
                     {
                         "type": "static-qr-code",
                         "name": "pay_url",
                         "visibleOn": "typeof data.pay_url !== 'undefined'",
                         "label": "支付二维码"
+                    },
+                    {
+                        "type": "static",
+                        "name": "message",
+                        "visibleOn": "typeof data.message !== 'undefined'",
+                        "label": "返回信息"
                     },
                     {
                         "type": "static-json",
