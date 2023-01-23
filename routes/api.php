@@ -23,6 +23,6 @@ Route::group([
     'namespace' => '\\App\\Http\\Controllers'
 ],function () {
    Route::post('create' , 'OrderController@alipayCreate');
-   Route::post('notify' , 'OrderController@alipayNotify');
+   Route::post('notify' , 'OrderController@alipayNotify')->name('api.alipay.notify');
 
 });

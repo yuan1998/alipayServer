@@ -64,6 +64,10 @@ class AlipayClient
         $alipayConfig->setSignType("RSA2");
         $alipayClient = new \AopClient($alipayConfig);
         $request = new \AlipayTradePrecreateRequest();
+
+
+        $url = route('api.alipay.notify');
+        $request->setNotifyUrl($url);
         $totalAmount = $order->price + $order->fee_price;
 
         $data = [
