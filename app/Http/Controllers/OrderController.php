@@ -23,7 +23,13 @@ class OrderController extends Controller
                 $result = AlipayClient::queryStatus($id);
                 if ($result['success']) {
                     $status = data_get($result['result'], 'trade_status');
-                    $msg = data_get($this->statusMessage, $status, '未知状态');
+                    $msg = data_get($this->statusMessage, $status, "未知状态 $status");
+                    $price = data_get($result, 'result.total_amount');
+                    if ($price && in_array($status, array_keys($this->statusMessage))) {
+                        $order = Order::query()->where('notify_id', $id)->first();
+                        if ($order) $order->tradeSuccess($price);
+                    }
+
                     return response()->json([
                         'status' => 0,
                         'msg' => $msg,
@@ -59,6 +65,16 @@ class OrderController extends Controller
                 ]);
             }
 
+            $msg = data_get($result, 'result.sub_msg', '拉起支付失败!!');
+
+            return response()->json([
+                'status' => 1,
+                'msg' => $msg,
+                'data' => [
+                    'message' => $msg
+                ]
+            ]);
+
         } catch (\Exception $exception) {
             $message = $exception->getMessage();
             return response()->json([
@@ -69,8 +85,7 @@ class OrderController extends Controller
                 ]
             ]);
         }
-//        return response()->json(['1']);
-        dd($request->all());
+
     }
 
     public function alipayNotify(Request $request)
@@ -87,27 +102,14 @@ class OrderController extends Controller
         }
         $status = $request->get('trade_status');
         if ($status === 'TRADE_SUCCESS' || $status === 'TRADE_FINISHED') {
-            if ($order->status === Order::UNPAY_STATUS) {
-                $price = $request->get('total_amount', 0);
-                $order->status = Order::PAY_STATUS;
-                $body = $this->callNotifyUrl($order->notify_url, [
-                    "price" => $price,
-                    'status' => 'TRADE_SUCCESS',
-                    'id' => $id,
-                ]);
-                $order->notify_return = $body;
-                $order->notify_status = $body === 'success' ? Order::NOTIFY_CALL_SUCCESS_STATUS : Order::NOTIFY_CALL_ERROR_STATUS;
-
-                $order->save();
-                return 'success';
-            }
-
+            $price = $request->get('total_amount', 0);
+            $order->tradeSuccess($price);
+            return 'success';
         }
         return 'fail';
-        dd($request->all());
     }
 
-    public function callNotifyUrl($url, $data)
+    public static function callNotifyUrl($url, $data)
     {
         $curl = curl_init();
 

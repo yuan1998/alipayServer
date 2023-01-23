@@ -93,7 +93,7 @@ class AlipayClient
 
         return [
             'success' => $response && $code == 10000,
-            'result' => $response,
+            'result' => collect($response),
         ];
     }
 
