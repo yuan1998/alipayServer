@@ -59,7 +59,7 @@
                     },
 
                     {
-                        label: '个人版 - 循环 - 200GiB x 月付',
+                        label: '个人版 - 循环 - {{$price}}GiB x 月付',
                         type: 'static',
                         value: "¥{{$price}}",
                         name: '_price'
