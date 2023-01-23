@@ -19,7 +19,7 @@ Route::get('/apy',function () {
     $notifyUrl = $request->get('notify_url', "http://test.app.test/api/notify");
     $notifyId = $request->get('notify_id',\App\Models\Order::generateOrderId());
     $price = $request->get('price',100);
-    $feePrice = number_format($price * 0.006,2);
+    $feePrice = number_format($price * env('FEE_PRICE_RATE',0.006),2);
     return view('hello' , [
         'notifyUrl' => $notifyUrl,
         'notifyId' => $notifyId,

@@ -5,6 +5,7 @@ namespace App\Clients;
 use Alipay\EasySDK\Kernel\Factory;
 use Alipay\EasySDK\Kernel\Util\ResponseChecker;
 use Alipay\EasySDK\Kernel\Config;
+use Illuminate\Support\Facades\Log;
 
 
 class AlipayClient
@@ -67,6 +68,7 @@ class AlipayClient
 
 
         $url = route('api.alipay.notify');
+        Log::debug("异步回调地址",[$url]);
         $request->setNotifyUrl($url);
         $totalAmount = $order->price + $order->fee_price;
 

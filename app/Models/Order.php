@@ -66,7 +66,7 @@ class Order extends Model
 
          } else{
              if (env('ENABLE_FEE_PRICE'))
-                 $data['fee_price'] = number_format($data['price'] * 0.006 ,2);
+                 $data['fee_price'] = number_format($data['price'] * env('FEE_PRICE_RATE',0.006) ,2);
 
              $data['uuid'] = self::generateOrderId();
 
