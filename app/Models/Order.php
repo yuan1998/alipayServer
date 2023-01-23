@@ -82,9 +82,10 @@ class Order extends Model
 
     public function tradeSuccess($price)
     {
+        if ($price< $this->price)
+            throw new \Exception("充值金额有误,金额与订单金额不匹配!");
         if ($this->status === Order::UNPAY_STATUS) {
             $this->status = Order::PAY_STATUS;
-
         }
 
         if ($this->notify_status !== Order::NOTIFY_CALL_SUCCESS_STATUS) {
