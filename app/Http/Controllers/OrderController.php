@@ -22,6 +22,7 @@ class OrderController extends Controller
             if ($request->get('pay_url')) {
                 $id = $request->get('notify_id');
                 $result = AlipayClient::queryStatus($id);
+
                 if ($result['success']) {
                     $status = data_get($result['result'], 'trade_status');
                     $msg = data_get(static::$statusMessage, $status, "未知状态 $status");
