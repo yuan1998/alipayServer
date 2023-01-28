@@ -3,13 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Clients\AlipayClient;
+use App\Jobs\CheckOrderIsPayJob;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class OrderController extends Controller
 {
-    public $statusMessage = [
+    public static  $statusMessage = [
         'TRADE_SUCCESS' => '支付成功.!',
         'WAIT_BUYER_PAY' => '订单已拉起,请支付.支付成功后请再次点击按钮检查支付状态.!'
     ];
@@ -23,9 +24,9 @@ class OrderController extends Controller
                 $result = AlipayClient::queryStatus($id);
                 if ($result['success']) {
                     $status = data_get($result['result'], 'trade_status');
-                    $msg = data_get($this->statusMessage, $status, "未知状态 $status");
+                    $msg = data_get(static::$statusMessage, $status, "未知状态 $status");
                     $price = data_get($result, 'result.total_amount');
-                    if ($price && in_array($status, array_keys($this->statusMessage))) {
+                    if ($price && in_array($status, array_keys(static::$statusMessage))) {
                         $order = Order::query()->where('notify_id', $id)->first();
                         if ($order) $order->tradeSuccess($price);
                     }
@@ -50,11 +51,11 @@ class OrderController extends Controller
                         ]
                     ]);
                 }
-
             }
             $order = Order::createOrder($request);
             $result = AlipayClient::payment($order);
             if ($result['success']) {
+                CheckOrderIsPayJob::dispatch($order->notify_id)->delay(60);
                 return response()->json([
                     'status' => 0,
                     'msg' => '获取订单成功.请在支付成功后再次点击按钮',

@@ -57,7 +57,6 @@
                         name: 'price',
                         value: "{{$price}}"
                     },
-
                     {
                         label: '个人版 - 循环 - {{$price}}GiB x 月付',
                         type: 'static',
